@@ -86,12 +86,18 @@ def create_invoice_sheet(ws, invoices: List[InvoiceData]):
                 ws.cell(row=row, column=11, value=item.quantity)
             
             try:
-                ws.cell(row=row, column=12, value=float(item.unit_price.replace(',', '')) if item.unit_price else None)
+                unit_price_value = float(item.unit_price.replace(',', '')) if item.unit_price else 0.0
+                unit_price_cell = ws.cell(row=row, column=12, value=unit_price_value)
+                # 소수점 둘째자리까지 표시 형식 설정
+                unit_price_cell.number_format = '0.00'
             except:
                 ws.cell(row=row, column=12, value=item.unit_price)
             
             try:
-                ws.cell(row=row, column=13, value=float(item.total_price_usd.replace(',', '')) if item.total_price_usd else None)
+                price_value = float(item.total_price_usd.replace(',', '')) if item.total_price_usd else 0.0
+                cell = ws.cell(row=row, column=13, value=price_value)
+                # 소수점 둘째자리까지 표시 형식 설정
+                cell.number_format = '0.00'
             except:
                 ws.cell(row=row, column=13, value=item.total_price_usd)
             
@@ -171,7 +177,9 @@ def _create_invoice_summary_table(ws, invoices: List[InvoiceData], start_col: in
         ws.cell(row=current_row, column=start_col + 3, value=calculated_total_qty)
         total_quantity_sum += calculated_total_qty
         
-        ws.cell(row=current_row, column=start_col + 4, value=total_price)
+        price_cell = ws.cell(row=current_row, column=start_col + 4, value=total_price)
+        # 소수점 둘째자리까지 표시 형식 설정
+        price_cell.number_format = '0.00'
         total_price_sum += total_price
         current_row += 1
     
@@ -192,6 +200,8 @@ def _create_invoice_summary_table(ws, invoices: List[InvoiceData], start_col: in
     price_sum_cell = ws.cell(row=current_row, column=start_col + 4, value=total_price_sum)
     price_sum_cell.font = Font(bold=True)
     price_sum_cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
+    # 소수점 둘째자리까지 표시 형식 설정
+    price_sum_cell.number_format = '0.00'
     
     # 집계 테이블 열 너비 조정
     for col in range(5):
