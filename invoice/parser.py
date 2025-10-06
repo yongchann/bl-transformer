@@ -197,9 +197,10 @@ class InvoiceParser:
         item = InvoiceItem()
         item.ean_number = match1.group(1)
         item.description = match1.group(2).strip()
-        item.quantity = match2.group(1)
-        item.unit_price = match2.group(2)
-        item.total_price_usd = match2.group(3)
+        # Remove commas from numeric fields (e.g., "1,800" -> "1800")
+        item.quantity = match2.group(1).replace(',', '')
+        item.unit_price = match2.group(2).replace(',', '')
+        item.total_price_usd = match2.group(3).replace(',', '')
         item.country = match2.group(5)
         item.product_code = match2.group(6)
         
