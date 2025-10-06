@@ -24,7 +24,7 @@ def create_invoice_sheet(ws, invoices: List[InvoiceData]):
     headers = [
         'EDI', 'DeliveryNo', 'InvoiceNo', 'InvoiceDate', 
         'ShipmentNo', 'TotalQuantity',
-        'EanCode', 'Ref', 'Ref00', 'Description', 'Quantity', 'UnitPrice', 
+        'EAN', 'Ref', 'Ref00', 'Description', 'Quantity', 'UnitPrice', 
         'TotalPriceUsd', 'Country'
     ]
     

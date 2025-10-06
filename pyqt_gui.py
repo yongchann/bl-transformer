@@ -425,9 +425,28 @@ class PDFParserGUI(QMainWindow):
                 source_dir = os.path.dirname(self.packing_file)
             
             if base_name and source_dir:
-                output_path = os.path.join(source_dir, f"{base_name}.xlsx")
+                # 윈도우 호환 파일명 생성 (특수문자 제거)
+                safe_base_name = self.make_safe_filename(base_name)
+                output_path = os.path.join(source_dir, f"{safe_base_name}.xlsx")
+                # 경로 정규화 (윈도우 백슬래시 처리)
+                output_path = os.path.normpath(output_path)
                 self.output_edit.setText(output_path)
                 self.add_log(f"💾 출력 파일 경로가 설정되었습니다: {output_path}")
+                
+    def make_safe_filename(self, filename):
+        """윈도우 호환 안전한 파일명 생성"""
+        import re
+        # 윈도우에서 사용할 수 없는 문자들 제거
+        unsafe_chars = r'[<>:"/\\|?*]'
+        safe_name = re.sub(unsafe_chars, '_', filename)
+        # 연속된 언더스코어 제거
+        safe_name = re.sub(r'_+', '_', safe_name)
+        # 앞뒤 공백과 점 제거
+        safe_name = safe_name.strip(' .')
+        # 빈 문자열이면 기본값 사용
+        if not safe_name:
+            safe_name = "parsed_data"
+        return safe_name
                 
     def start_conversion(self):
         """변환 작업 시작"""
@@ -445,11 +464,14 @@ class PDFParserGUI(QMainWindow):
         self.progress_bar.setRange(0, 0)  # 무한 진행률
         self.log_text.clear()
         
+        # 출력 파일 경로 정규화 (윈도우 호환성)
+        output_path = os.path.normpath(self.output_edit.text())
+        
         # 워커 스레드 시작
         self.worker = ConversionWorker(
             self.invoice_file, 
             self.packing_file, 
-            self.output_edit.text()
+            output_path
         )
         self.worker.progress_update.connect(self.update_progress)
         self.worker.log_update.connect(self.add_log)
@@ -498,13 +520,42 @@ class PDFParserGUI(QMainWindow):
             if reply == QMessageBox.Yes:
                 try:
                     if sys.platform == "win32":
-                        os.startfile(message)
+                        # 윈도우에서 안전한 파일 열기
+                        import subprocess
+                        # 경로를 정규화
+                        normalized_path = os.path.normpath(message)
+                        
+                        # 방법 1: os.startfile 사용 (가장 안전)
+                        try:
+                            os.startfile(normalized_path)
+                        except OSError:
+                            # 방법 2: subprocess로 cmd 사용
+                            subprocess.run(['cmd', '/c', 'start', '""', f'"{normalized_path}"'], check=True)
                     elif sys.platform == "darwin":
                         os.system(f"open '{message}'")
                     else:
                         os.system(f"xdg-open '{message}'")
                 except Exception as e:
-                    QMessageBox.warning(self, "파일 열기 오류", f"파일을 열 수 없습니다:\n{str(e)}")
+                    # 대안 방법 시도
+                    try:
+                        if sys.platform == "win32":
+                            # 대안 1: explorer로 파일 선택
+                            subprocess.run(['explorer', '/select,', os.path.normpath(message)], check=True)
+                        else:
+                            # 파일 탐색기에서 폴더 열기
+                            folder_path = os.path.dirname(message)
+                            if sys.platform == "darwin":
+                                os.system(f"open '{folder_path}'")
+                            else:
+                                os.system(f"xdg-open '{folder_path}'")
+                    except Exception as e2:
+                        QMessageBox.warning(
+                            self, "파일 열기 오류", 
+                            f"파일을 열 수 없습니다.\n\n"
+                            f"파일 위치: {message}\n\n"
+                            f"수동으로 파일을 열어주세요.\n"
+                            f"오류: {str(e)}"
+                        )
         else:
             self.statusBar().showMessage("변환 실패")
             QMessageBox.critical(self, "변환 오류", f"변환 중 오류가 발생했습니다:\n{message}")
