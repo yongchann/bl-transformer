@@ -28,14 +28,7 @@ jobs:
         
     - name: Build GUI executable with PyInstaller
       run: |
-        pyinstaller --onefile --windowed --name "PDF-Parser-GUI" ^
-          --add-data "invoice;invoice" ^
-          --add-data "packing_list;packing_list" ^
-          --hidden-import=pdfplumber ^
-          --hidden-import=openpyxl ^
-          --hidden-import=openpyxl.styles ^
-          --hidden-import=tkinter ^
-          --clean --noconfirm gui_main.py
+        pyinstaller --onefile --windowed --name "PDF-Parser-GUI" --add-data "invoice;invoice" --add-data "packing_list;packing_list" --hidden-import=pdfplumber --hidden-import=openpyxl --hidden-import=openpyxl.styles --hidden-import=tkinter --clean --noconfirm gui_main.py
         
     - name: Create release package
       run: |
