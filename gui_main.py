@@ -59,7 +59,7 @@ class PDFParserGUI:
         # 출력 파일 설정
         ttk.Label(main_frame, text="출력 Excel 파일명:").grid(row=6, column=0, sticky=tk.W, pady=(20, 5))
         
-        self.output_var = tk.StringVar(value="parsed_data.xlsx")
+        self.output_var = tk.StringVar(value=".xlsx")
         self.output_entry = ttk.Entry(main_frame, textvariable=self.output_var, width=50)
         self.output_entry.grid(row=7, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
         
@@ -139,7 +139,7 @@ class PDFParserGUI:
                 base_name = Path(self.packing_file).stem.replace(" PL", "")
             
             if base_name:
-                output_name = f"{base_name}_parsed_data.xlsx"
+                output_name = f"{base_name}.xlsx"
                 self.output_var.set(output_name)
                 
     def start_conversion(self):

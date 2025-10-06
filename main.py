@@ -47,7 +47,7 @@ def main():
     elif packing_pdf:
         base_name = packing_pdf.replace(" PL.pdf", "").replace(" PL.PDF", "")
     
-    output_excel = f"{base_name}_parsed_data.xlsx" if base_name else "parsed_data.xlsx"
+    output_excel = f"{base_name}.xlsx" if base_name else ".xlsx"
     
     try:
         print(f"\n발견된 파일:")
