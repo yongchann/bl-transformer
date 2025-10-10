@@ -69,7 +69,52 @@ class PackingListParser:
         except Exception as e:
             raise Exception(f"PDF reading error: {str(e)}")
         
-        return all_items
+        # EAN + Batch 기준으로 아이템 그룹핑 및 수량 합산
+        grouped_items = self._group_items_by_ean_batch(all_items)
+        
+        return grouped_items
+    
+    def _group_items_by_ean_batch(self, items: List[PackingListItem]) -> List[PackingListItem]:
+        """
+        EAN과 Batch가 동일한 아이템들을 그룹핑하여 수량 합산
+        
+        Args:
+            items: 원본 아이템 리스트
+            
+        Returns:
+            그룹핑된 아이템 리스트 (수량 합산됨)
+        """
+        grouped = {}
+        
+        for item in items:
+            # EAN과 Batch를 키로 사용
+            key = f"{item.ean}_{item.batch}"
+            
+            if key not in grouped:
+                # 첫 번째 아이템은 그대로 저장
+                grouped[key] = item
+                if self.debug:
+                    print(f"새 그룹 생성: {key} (수량: {item.items_qty})")
+            else:
+                # 기존 아이템에 수량 합산
+                try:
+                    existing_qty = int(grouped[key].items_qty) if grouped[key].items_qty else 0
+                    additional_qty = int(item.items_qty) if item.items_qty else 0
+                    total_qty = existing_qty + additional_qty
+                    grouped[key].items_qty = str(total_qty)
+                    
+                    if self.debug:
+                        print(f"수량 합산: {key} ({existing_qty} + {additional_qty} = {total_qty})")
+                except ValueError:
+                    if self.debug:
+                        print(f"수량 변환 오류: {key}, 기존값 유지")
+        
+        result = list(grouped.values())
+        
+        if self.debug:
+            print(f"그룹핑 결과: {len(items)}개 → {len(result)}개 아이템")
+        
+        return result
     
     def _extract_common_data(self, page_text: str) -> Dict[str, Optional[str]]:
         """Extract common metadata from page text"""
