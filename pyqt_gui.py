@@ -228,6 +228,11 @@ class PDFParserGUI(QMainWindow):
         invoice_btn.setStyleSheet(self.get_button_style())
         file_layout.addWidget(invoice_btn, 0, 2)
         
+        invoice_cancel_btn = QPushButton("취소")
+        invoice_cancel_btn.clicked.connect(self.clear_invoice_file)
+        invoice_cancel_btn.setStyleSheet(self.get_cancel_button_style())
+        file_layout.addWidget(invoice_cancel_btn, 0, 3)
+        
         # 패킹리스트 파일
         file_layout.addWidget(QLabel("패킹리스트 파일 (*PL.pdf):"), 1, 0)
         self.packing_edit = DragDropLineEdit("패킹리스트 파일을 드래그하거나 버튼으로 선택하세요...")
@@ -238,6 +243,11 @@ class PDFParserGUI(QMainWindow):
         packing_btn.clicked.connect(self.select_packing_file)
         packing_btn.setStyleSheet(self.get_button_style())
         file_layout.addWidget(packing_btn, 1, 2)
+        
+        packing_cancel_btn = QPushButton("취소")
+        packing_cancel_btn.clicked.connect(self.clear_packing_file)
+        packing_cancel_btn.setStyleSheet(self.get_cancel_button_style())
+        file_layout.addWidget(packing_cancel_btn, 1, 3)
         
         # 출력 파일
         file_layout.addWidget(QLabel("출력 Excel 파일:"), 2, 0)
@@ -357,6 +367,25 @@ class PDFParserGUI(QMainWindow):
             }
         """
         
+    def get_cancel_button_style(self):
+        """취소 버튼 스타일"""
+        return """
+            QPushButton {
+                background-color: #e74c3c;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #c0392b;
+            }
+            QPushButton:pressed {
+                background-color: #a93226;
+            }
+        """
+        
     def select_invoice_file(self):
         """인보이스 파일 선택"""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -388,6 +417,22 @@ class PDFParserGUI(QMainWindow):
         self.packing_file = file_path
         self.update_output_filename()
         self.add_log(f"📦 패킹리스트 파일이 추가되었습니다: {os.path.basename(file_path)}")
+    
+    def clear_invoice_file(self):
+        """인보이스 파일 선택 취소"""
+        if self.invoice_file:
+            self.add_log(f"🗑️ 인보이스 파일 선택이 취소되었습니다: {os.path.basename(self.invoice_file)}")
+        self.invoice_file = None
+        self.invoice_edit.setText("")
+        self.update_output_filename()
+    
+    def clear_packing_file(self):
+        """패킹리스트 파일 선택 취소"""
+        if self.packing_file:
+            self.add_log(f"🗑️ 패킹리스트 파일 선택이 취소되었습니다: {os.path.basename(self.packing_file)}")
+        self.packing_file = None
+        self.packing_edit.setText("")
+        self.update_output_filename()
             
     def select_output_file(self):
         """출력 파일 저장 위치 선택"""
@@ -432,6 +477,9 @@ class PDFParserGUI(QMainWindow):
                 output_path = os.path.normpath(output_path)
                 self.output_edit.setText(output_path)
                 self.add_log(f"💾 출력 파일 경로가 설정되었습니다: {output_path}")
+        else:
+            # 파일이 모두 취소되었을 때 기본값으로 설정
+            self.output_edit.setText(".xlsx")
                 
     def make_safe_filename(self, filename):
         """윈도우 호환 안전한 파일명 생성"""
